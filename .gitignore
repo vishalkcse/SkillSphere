@@ -1,0 +1,18 @@
+# Target and build files
+target/
+*.class
+
+# IDE & Editor files
+.idea/
+*.iml
+.vscode/
+
+# Frontend dependencies and build outputs
+frontend/node_modules/
+frontend/.angular/
+frontend/dist/
+
+# Logs and OS files
+*.log
+.DS_Store
+Thumbs.db

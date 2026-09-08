@@ -1,0 +1,611 @@
+<div class="app-container">
+  <!-- Header Banner -->
+  <header class="navbar">
+    <div class="logo-area">
+      <img src="logo.jpg" alt="SkillSphere Logo" class="brand-logo-img">
+      <div>
+        <h1 class="brand-title">SkillSphere <span class="accent-text">Nexus</span></h1>
+        <p class="brand-sub">Milestone 1, 2, 3 & 4 — Career, Learning & Executive Analytics Platform</p>
+      </div>
+    </div>
+    <div class="header-stats">
+      <div class="stat-pill"><span class="stat-val">12.4K</span> Employees</div>
+      <div class="stat-pill"><span class="stat-val">847</span> Courses</div>
+      <div class="stat-pill"><span class="stat-val">8.4K</span> Certifications</div>
+      <div class="stat-badge">Enterprise Edition</div>
+    </div>
+  </header>
+
+  <!-- Navigation Tabs -->
+  <nav class="nav-tabs">
+    <button [class.active]="activeTab === 'profile'" (click)="activeTab = 'profile'">
+      Employee Skill Profile
+    </button>
+    <button [class.active]="activeTab === 'catalog'" (click)="activeTab = 'catalog'">
+      Skill Catalog Master
+    </button>
+    <button [class.active]="activeTab === 'competency'" (click)="activeTab = 'competency'">
+      Competency Gap Mapping
+    </button>
+    <button [class.active]="activeTab === 'assessments'" (click)="activeTab = 'assessments'">
+      Assessments & Verification
+    </button>
+    <button [class.active]="activeTab === 'learning'" (click)="activeTab = 'learning'">
+      Learning Management
+    </button>
+    <button [class.active]="activeTab === 'certifications'" (click)="activeTab = 'certifications'">
+      Certifications & Compliance
+    </button>
+    <button [class.active]="activeTab === 'career'" (click)="activeTab = 'career'">
+      Career & Executive Analytics
+    </button>
+  </nav>
+
+  <!-- Content Container -->
+  <main class="main-content">
+    <!-- Tab 1: Employee Skill Profile -->
+    <section *ngIf="activeTab === 'profile'" class="tab-pane">
+      <div *ngIf="loadingProfile" class="loading-spinner">Loading Employee Skill Profile...</div>
+      
+      <div *ngIf="profile && !loadingProfile" class="profile-grid">
+        <!-- Card 1: Employee Summary -->
+        <div class="glass-card profile-card">
+          <div class="user-avatar">{{ profile.employee.name.charAt(0) }}</div>
+          <h2>{{ profile.employee.name }}</h2>
+          <p class="role-title">{{ profile.employee.title }}</p>
+          <span class="dept-chip">{{ profile.employee.department }}</span>
+          
+          <div class="info-row">
+            <span>Email:</span> <strong>{{ profile.employee.email }}</strong>
+          </div>
+          <div class="info-row">
+            <span>Role Type:</span> <strong>{{ profile.employee.role }}</strong>
+          </div>
+          <div class="info-row">
+            <span>ID:</span> <code class="uuid-code">{{ profile.employee.id }}</code>
+          </div>
+
+          <div *ngIf="profile.formattedOutputSummary" class="formatted-output">
+            <div class="summary-header">Output Summary (Redis Cached):</div>
+            <p>{{ profile.formattedOutputSummary }}</p>
+          </div>
+        </div>
+
+        <!-- Card 2: Tracked Skills & Proficiency -->
+        <div class="glass-card skills-card">
+          <h3>Tracked Competencies & Proficiency (1-10 Scale)</h3>
+          <div class="skills-list">
+            <div *ngFor="let s of profile.skills" class="skill-item">
+              <div class="skill-info">
+                <span class="skill-name">{{ s.skill.skillName || s.skill.name }}</span>
+                <span class="skill-level-badge">{{ s.proficiencyLevel || s.proficiency }}/10</span>
+              </div>
+              <div class="progress-bar-bg">
+                <div class="progress-bar-fill" [style.width.%]="((s.proficiencyLevel || s.proficiency || 0) * 10)"></div>
+              </div>
+              <div class="skill-meta">
+                <span>Category: <em>{{ s.skill.category }}</em></span>
+                <span>Experience: {{ s.experienceYears || 1 }} yrs</span>
+                <span class="status-tag" [class.verified]="s.verified">
+                  {{ s.verified ? '✓ Verified' : 'Pending Verification' }}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 3: Certifications & Experience -->
+        <div class="glass-card certs-card">
+          <h3>Certifications & Credentials</h3>
+          <div *ngIf="profile.certifications.length === 0" class="empty-state">No certifications logged.</div>
+          <div class="cert-list">
+            <div *ngFor="let cert of profile.certifications" class="cert-item">
+              <div class="cert-header">
+                <strong>{{ cert.certName || cert.name }}</strong>
+                <span class="cert-status-badge" [class.valid]="cert.status === 'VALID'" [class.expired]="cert.status === 'EXPIRED'">
+                  {{ cert.status }}
+                </span>
+              </div>
+              <div class="cert-details">
+                <div>Credential ID: <code>{{ cert.credentialId }}</code></div>
+                <div>Issued: {{ cert.issueDate }} | Expiry: {{ cert.expiryDate }}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tab 2: Skill Catalog -->
+    <section *ngIf="activeTab === 'catalog'" class="tab-pane">
+      <div class="catalog-layout">
+        <!-- Add Skill Form -->
+        <div class="glass-card form-card">
+          <h3>Add New Skill (HR Restricted)</h3>
+          <div *ngIf="catalogSuccessMsg" class="alert-box success">{{ catalogSuccessMsg }}</div>
+          <form (ngSubmit)="addSkillToCatalog()">
+            <div class="form-group">
+              <label>Skill Name</label>
+              <input type="text" [(ngModel)]="newSkillName" name="newSkillName" placeholder="e.g. Kubernetes, React 19..." required />
+            </div>
+            <div class="form-group">
+              <label>Category</label>
+              <select [(ngModel)]="newSkillCategory" name="newSkillCategory">
+                <option value="TECHNICAL">TECHNICAL</option>
+                <option value="DOMAIN">DOMAIN</option>
+                <option value="SOFT">SOFT</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Level</label>
+              <select [(ngModel)]="newSkillLevel" name="newSkillLevel">
+                <option value="Beginner">Beginner</option>
+                <option value="Intermediate">Intermediate</option>
+                <option value="Advanced">Advanced</option>
+                <option value="Expert">Expert</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Description</label>
+              <textarea [(ngModel)]="newSkillDescription" name="newSkillDescription" placeholder="Brief description of competency..."></textarea>
+            </div>
+            <button type="submit" class="btn-primary">+ Save Skill to Catalog</button>
+          </form>
+        </div>
+
+        <!-- Catalog Master List Table -->
+        <div class="glass-card table-card">
+          <h3>Master Skill Catalog ({{ catalog.length }} Skills)</h3>
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Skill Name</th>
+                  <th>Category</th>
+                  <th>Default Level</th>
+                  <th>Description</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let item of catalog">
+                  <td><strong>{{ item.skillName || item.name }}</strong></td>
+                  <td><span class="cat-chip" [class.tech]="item.category === 'TECHNICAL'" [class.domain]="item.category === 'DOMAIN'" [class.soft]="item.category === 'SOFT'">{{ item.category }}</span></td>
+                  <td>{{ item.level || 'Intermediate' }}</td>
+                  <td>{{ item.description || 'Enterprise Skill Competency' }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tab 3: Competency Gap Mapping -->
+    <section *ngIf="activeTab === 'competency'" class="tab-pane">
+      <div class="glass-card competency-panel">
+        <div class="panel-header">
+          <div>
+            <h3>Competency Gap Mapping</h3>
+            <p>Compare an employee's proficiency against target role requirements.</p>
+          </div>
+          <div class="role-selector">
+            <label>Target Role:</label>
+            <select [(ngModel)]="targetRole" (change)="loadCompetencyGaps()">
+              <option value="Tech Lead">Tech Lead</option>
+              <option value="Senior Developer">Senior Developer</option>
+              <option value="Cloud Architect">Cloud Architect</option>
+            </select>
+          </div>
+        </div>
+
+        <div *ngIf="loadingGaps" class="loading-spinner">Calculating Competency Gaps...</div>
+
+        <div *ngIf="!loadingGaps && competencyGaps.length === 0" class="empty-state">
+          No competency gaps found for role <strong>{{ targetRole }}</strong>.
+        </div>
+
+        <div *ngIf="!loadingGaps && competencyGaps.length > 0" class="gap-grid">
+          <div *ngFor="let gap of competencyGaps" class="gap-card" [class.has-gap]="gap.gap > 0">
+            <div class="gap-title">
+              <strong>{{ gap.skillName }}</strong>
+              <span class="gap-badge" [class.gap-positive]="gap.gap > 0" [class.gap-zero]="gap.gap === 0">
+                {{ gap.gap > 0 ? 'Gaps: ' + gap.skillName + ' +' + gap.gap : '✓ Target Met' }}
+              </span>
+            </div>
+
+            <div class="gap-comparison">
+              <div class="metric-box">
+                <span class="metric-label">Current Level</span>
+                <span class="metric-val">{{ gap.currentProficiency }}/10</span>
+              </div>
+              <div class="vs-divider">VS</div>
+              <div class="metric-box">
+                <span class="metric-label">Required Target</span>
+                <span class="metric-val">{{ gap.requiredProficiency }}/10</span>
+              </div>
+            </div>
+
+            <div class="gap-progress">
+              <div class="gap-progress-current" [style.width.%]="gap.currentProficiency * 10"></div>
+              <div class="gap-progress-target" [style.width.%]="gap.requiredProficiency * 10"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tab 4: Assessments & HR Verification -->
+    <section *ngIf="activeTab === 'assessments'" class="tab-pane">
+      <div class="assess-layout">
+        <!-- Record Assessment -->
+        <div class="glass-card form-card">
+          <h3>Record Skill Assessment</h3>
+          <div *ngIf="assessSuccessMsg" class="alert-box success">{{ assessSuccessMsg }}</div>
+          <form (ngSubmit)="submitAssessment()">
+            <div class="form-group">
+              <label>Select Target Skill</label>
+              <select [(ngModel)]="newAssessSkillId" name="newAssessSkillId">
+                <option *ngFor="let sk of catalog" [value]="sk.skillId || sk.id">
+                  {{ sk.skillName || sk.name }} ({{ sk.category }})
+                </option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Assessment Score (0 - 100%)</label>
+              <input type="number" [(ngModel)]="newAssessScore" name="newAssessScore" min="0" max="100" required />
+              <small class="hint">Pass threshold: ≥ 70%</small>
+            </div>
+            <button type="submit" class="btn-primary">Submit Assessment Score</button>
+          </form>
+        </div>
+
+        <!-- Assessment Log -->
+        <div class="glass-card log-card">
+          <h3>Assessment Scoring & HR Verification</h3>
+          <div *ngIf="!profile || profile.assessments.length === 0" class="empty-state">No assessments registered.</div>
+
+          <div *ngIf="profile && profile.assessments.length > 0" class="assess-list">
+            <div *ngFor="let a of profile.assessments" class="assess-item">
+              <div class="assess-main">
+                <div>
+                  <strong>{{ a.title }}</strong>
+                  <div class="assess-date">Date: {{ a.assessmentDate || 'Recent' }}</div>
+                </div>
+                <div class="assess-score-box" [class.passed]="a.passed" [class.failed]="!a.passed">
+                  <span class="score-num">{{ a.score }}%</span>
+                  <span class="pass-tag">{{ a.passed ? 'PASSED' : 'FAILED' }}</span>
+                </div>
+              </div>
+
+              <div class="assess-actions">
+                <span class="verification-badge" [class.is-verified]="a.verified">
+                  {{ a.verified ? '✓ Verified by HR' : 'Unverified' }}
+                </span>
+
+                <button *ngIf="!a.verified" (click)="verifyAssessment(a.assessId)" class="btn-verify">
+                  Verify Assessment (HR)
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tab 5: Milestone 2 Learning Management -->
+    <section *ngIf="activeTab === 'learning'" class="tab-pane">
+      <div *ngIf="learningMsg" class="alert-box success">{{ learningMsg }}</div>
+
+      <div class="catalog-layout">
+        <!-- Left: Course Creation & Path Info -->
+        <div class="glass-card form-card">
+          <h3>Create New Course</h3>
+          <form (ngSubmit)="createNewCourse()">
+            <div class="form-group">
+              <label>Course Title</label>
+              <input type="text" [(ngModel)]="newCourseTitle" name="newCourseTitle" placeholder="e.g. Spring Boot 4 Microservices" required />
+            </div>
+            <div class="form-group">
+              <label>Description</label>
+              <textarea [(ngModel)]="newCourseDesc" name="newCourseDesc" placeholder="Learn Spring Boot 4 and Microservices..."></textarea>
+            </div>
+            <div class="form-group">
+              <label>Duration (Hours)</label>
+              <input type="number" [(ngModel)]="newCourseDuration" name="newCourseDuration" min="1" />
+            </div>
+            <div class="form-group">
+              <label>Course Type</label>
+              <select [(ngModel)]="newCourseType" name="newCourseType">
+                <option value="ONLINE">ONLINE</option>
+                <option value="WORKSHOP">WORKSHOP</option>
+                <option value="WEBINAR">WEBINAR</option>
+                <option value="BOOTCAMP">BOOTCAMP</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Instructor Name</label>
+              <input type="text" [(ngModel)]="newCourseInstructor" name="newCourseInstructor" />
+            </div>
+            <button type="submit" class="btn-primary">+ Add Course to Catalog</button>
+          </form>
+
+          <hr style="margin: 20px 0; border: 1px solid rgba(255,255,255,0.1);" />
+
+          <h3>Learning Paths ({{ learningPaths.length }})</h3>
+          <div *ngFor="let path of learningPaths" class="cert-item" style="margin-bottom: 12px;">
+            <strong>{{ path.name || path.title }}</strong>
+            <p style="margin: 4px 0 0; font-size: 0.85rem; color: #a0aec0;">{{ path.description || path.careerTrack }}</p>
+          </div>
+        </div>
+
+        <!-- Right: Course List & Enrollments -->
+        <div class="glass-card table-card">
+          <h3>Available Courses ({{ courses.length }})</h3>
+          <div class="gap-grid" style="margin-bottom: 24px;">
+            <div *ngFor="let c of courses" class="gap-card">
+              <div class="gap-title">
+                <strong>{{ c.title }}</strong>
+                <span class="gap-badge gap-zero">{{ c.type }}</span>
+              </div>
+              <p style="font-size: 0.9rem; color: #cbd5e0; margin: 8px 0;">{{ c.description }}</p>
+              <div class="skill-meta" style="margin-bottom: 12px;">
+                <span>Duration: {{ c.duration || c.durationHours || 40 }} hrs</span>
+                <span>Instructor: {{ c.instructor || 'Jane Doe' }}</span>
+                <span>Rating: {{ c.rating || 4.85 }}</span>
+              </div>
+              <button (click)="enrollInCourse(c.courseId)" class="btn-primary" style="padding: 6px 16px;">
+                Enroll Employee
+              </button>
+            </div>
+          </div>
+
+          <h3>Active Enrollments & Progress Tracking</h3>
+          <div *ngIf="enrollments.length === 0" class="empty-state">No active course enrollments. Click "Enroll Employee" above.</div>
+          <div *ngFor="let e of enrollments" class="cert-item" style="margin-bottom: 12px; display: block;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <strong>Course: {{ e.courseTitle || (e.course ? e.course.title : 'Microservices') }}</strong>
+                <div style="font-size: 0.85rem; color: #a0aec0; margin-top: 4px;">
+                  Enrolled: {{ e.enrolledAt | date:'shortDate' }} | Score: {{ e.score }}%
+                </div>
+              </div>
+              <span class="gap-badge" [class.gap-zero]="e.completed" [class.gap-positive]="!e.completed">
+                {{ e.completed ? 'Completed' : 'In Progress (' + e.progress + '%)' }}
+              </span>
+            </div>
+
+            <div class="progress-bar-bg" style="margin: 12px 0;">
+              <div class="progress-bar-fill" [style.width.%]="e.progress"></div>
+            </div>
+
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+              <button (click)="updateProgress(e.enrollmentId, 67)" class="btn-verify">Update Progress to 67%</button>
+              <button (click)="completeCourse(e.enrollmentId)" class="btn-verify" style="background: rgba(72,187,120,0.2); color: #48bb78;">Complete Course</button>
+              <button (click)="generateCertificate(e.enrollmentId)" class="btn-primary" style="padding: 4px 12px; font-size: 0.85rem;">Generate Certificate</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tab 6: Milestone 3 Professional Certifications & Compliance -->
+    <section *ngIf="activeTab === 'certifications'" class="tab-pane">
+      <div *ngIf="certMsg" class="alert-box success">{{ certMsg }}</div>
+
+      <!-- Report Dashboard Summary Header -->
+      <div *ngIf="certReport" class="glass-card" style="margin-bottom: 24px;">
+        <h3>Certification Report Summary</h3>
+        <div class="gap-comparison" style="margin-top: 12px;">
+          <div class="metric-box">
+            <span class="metric-label">Total Active Certs</span>
+            <span class="metric-val">8.4K ({{ certReport.total }})</span>
+          </div>
+          <div class="metric-box">
+            <span class="metric-label">Expiring in 30 Days</span>
+            <span class="metric-val" style="color: #ed8936;">247 ({{ certReport.expiringWithin30Days }})</span>
+          </div>
+          <div class="metric-box">
+            <span class="metric-label">Renewal Rate</span>
+            <span class="metric-val" style="color: #48bb78;">94% ({{ certReport.renewalRate }}%)</span>
+          </div>
+          <div *ngIf="employeeCompliance" class="metric-box">
+            <span class="metric-label">Compliance Status</span>
+            <span class="metric-val" [style.color]="employeeCompliance.compliant ? '#48bb78' : '#e53e3e'">
+              {{ employeeCompliance.compliant ? 'COMPLIANT' : 'ACTION REQUIRED' }}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div class="catalog-layout">
+        <!-- Form: Register New Professional Certification -->
+        <div class="glass-card form-card">
+          <h3>Register Professional Certification</h3>
+          <form (ngSubmit)="registerProfessionalCert()">
+            <div class="form-group">
+              <label>Certification Name</label>
+              <input type="text" [(ngModel)]="newCertName" name="newCertName" placeholder="e.g. AWS Solutions Architect Associate" required />
+            </div>
+            <div class="form-group">
+              <label>Issuing Organization</label>
+              <input type="text" [(ngModel)]="newCertIssuer" name="newCertIssuer" placeholder="e.g. AWS / Oracle / Microsoft" />
+            </div>
+            <div class="form-group">
+              <label>Credential ID</label>
+              <input type="text" [(ngModel)]="newCertCredId" name="newCertCredId" placeholder="e.g. AWS-SAA-12345" />
+            </div>
+            <div class="form-group">
+              <label>Issue Date</label>
+              <input type="date" [(ngModel)]="newCertIssued" name="newCertIssued" />
+            </div>
+            <div class="form-group">
+              <label>Expiry Date</label>
+              <input type="date" [(ngModel)]="newCertExpiry" name="newCertExpiry" />
+            </div>
+            <button type="submit" class="btn-primary">+ Register Certification</button>
+          </form>
+        </div>
+
+        <!-- Right: Employee Professional Certifications & Renewal Workflow -->
+        <div class="glass-card table-card">
+          <h3>Professional Certifications & 30-Day Expiry Tracking</h3>
+          <div *ngIf="profCertifications.length === 0" class="empty-state">No professional certifications registered for employee.</div>
+          
+          <div *ngFor="let cert of profCertifications" class="cert-item" style="margin-bottom: 16px; display: block;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <strong>{{ cert.name }}</strong>
+                <div style="font-size: 0.85rem; color: #a0aec0; margin-top: 4px;">
+                  Issuer: {{ cert.issuingOrganization || 'AWS' }} | Credential: <code>{{ cert.credentialId }}</code>
+                </div>
+                <div style="font-size: 0.85rem; color: #cbd5e0; margin-top: 2px;">
+                  Issued: {{ cert.issued }} | Expiry: {{ cert.expiry }}
+                </div>
+              </div>
+
+              <div style="text-align: right;">
+                <span class="cert-status-badge" [class.valid]="cert.status === 'VALID'" [class.expired]="cert.status === 'EXPIRED'" [class.pending]="cert.status === 'PENDING_RENEWAL'">
+                  {{ cert.status }}
+                </span>
+                <div style="margin-top: 8px;">
+                  <button (click)="requestRenewal(cert.certId!)" class="btn-verify" style="padding: 4px 12px; font-size: 0.85rem;">
+                    Request Renewal
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tab 7: Milestone 4 Career & Executive Analytics -->
+    <section *ngIf="activeTab === 'career'" class="tab-pane">
+      <div *ngIf="careerMsg" class="alert-box success">{{ careerMsg }}</div>
+
+      <!-- Executive Analytics Dashboard Summary Card -->
+      <div *ngIf="execAnalytics" class="glass-card" style="margin-bottom: 24px;">
+        <h3>Executive Career Dashboard</h3>
+        <div class="gap-comparison" style="margin-top: 12px;">
+          <div class="metric-box">
+            <span class="metric-label">Career Plans</span>
+            <span class="metric-val">{{ execAnalytics.totalCareerPlans }}</span>
+          </div>
+          <div class="metric-box">
+            <span class="metric-label">Active Plans</span>
+            <span class="metric-val" style="color: #63b3ed;">{{ execAnalytics.activeCareerPlans }}</span>
+          </div>
+          <div class="metric-box">
+            <span class="metric-label">Promotion Eligible</span>
+            <span class="metric-val" style="color: #48bb78;">{{ execAnalytics.promotionEligible }}</span>
+          </div>
+          <div class="metric-box">
+            <span class="metric-label">Avg Progress</span>
+            <span class="metric-val">{{ execAnalytics.averageProgress }}%</span>
+          </div>
+          <div class="metric-box">
+            <span class="metric-label">Skill Coverage</span>
+            <span class="metric-val" style="color: #ed8936;">{{ execAnalytics.skillCoverage }}%</span>
+          </div>
+          <div class="metric-box">
+            <span class="metric-label">Active Internal Jobs</span>
+            <span class="metric-val">{{ execAnalytics.activeJobs }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="catalog-layout">
+        <!-- Left: Create Career Plan & Internal Job Forms -->
+        <div class="glass-card form-card">
+          <h3>Create Career Plan</h3>
+          <form (ngSubmit)="createCareerPlan()">
+            <div class="form-group">
+              <label>Current Role</label>
+              <input type="text" [(ngModel)]="newCurrentRole" name="newCurrentRole" placeholder="e.g. Developer" required />
+            </div>
+            <div class="form-group">
+              <label>Target Role</label>
+              <input type="text" [(ngModel)]="newTargetRole" name="newTargetRole" placeholder="e.g. Tech Lead" required />
+            </div>
+            <div class="form-group">
+              <label>Mentor Name</label>
+              <input type="text" [(ngModel)]="newMentor" name="newMentor" placeholder="e.g. Jane Doe" />
+            </div>
+            <div class="form-group">
+              <label>Skill Gaps</label>
+              <input type="text" [(ngModel)]="newSkillGapsText" name="newSkillGapsText" placeholder="e.g. Angular +3" />
+            </div>
+            <div class="form-group">
+              <label>Training Plan</label>
+              <input type="text" [(ngModel)]="newTrainingPlanText" name="newTrainingPlanText" placeholder="e.g. Angular Advanced Bootcamp" />
+            </div>
+            <button type="submit" class="btn-primary">+ Save Career Plan</button>
+          </form>
+
+          <hr style="margin: 20px 0; border: 1px solid rgba(255,255,255,0.1);" />
+
+          <h3>Post Internal Job</h3>
+          <form (ngSubmit)="createInternalJob()">
+            <div class="form-group">
+              <label>Job Title</label>
+              <input type="text" [(ngModel)]="newJobTitle" name="newJobTitle" required />
+            </div>
+            <div class="form-group">
+              <label>Department</label>
+              <input type="text" [(ngModel)]="newJobDept" name="newJobDept" />
+            </div>
+            <div class="form-group">
+              <label>Required Skills</label>
+              <input type="text" [(ngModel)]="newJobSkills" name="newJobSkills" />
+            </div>
+            <div class="form-group">
+              <label>Min Experience (Years)</label>
+              <input type="number" [(ngModel)]="newJobExp" name="newJobExp" min="0" />
+            </div>
+            <button type="submit" class="btn-primary">+ Post Internal Job</button>
+          </form>
+        </div>
+
+        <!-- Right: Career Plans & Internal Jobs List -->
+        <div class="glass-card table-card">
+          <h3>Career Plans & Promotion Eligibility ({{ careerPlans.length }})</h3>
+          <div *ngFor="let plan of careerPlans" class="gap-card" style="margin-bottom: 16px;">
+            <div class="gap-title">
+              <strong>{{ plan.employeeName || 'John Smith' }}</strong>
+              <span class="gap-badge" [class.gap-zero]="plan.promotionEligible" [class.gap-positive]="!plan.promotionEligible">
+                {{ plan.promotionEligible ? 'Promotion Eligible (Score: ' + plan.promotionScore + ')' : 'In Progress (Score: ' + plan.promotionScore + ')' }}
+              </span>
+            </div>
+            <p style="font-size: 0.95rem; color: #cbd5e0; margin: 8px 0;">
+              <strong>{{ plan.currentRole }}</strong> ➔ <strong>{{ plan.targetRole }}</strong>
+            </p>
+            <div class="progress-bar-bg" style="margin: 10px 0;">
+              <div class="progress-bar-fill" [style.width.%]="plan.progress"></div>
+            </div>
+            <div class="skill-meta">
+              <span>Skill Gaps: {{ plan.skillGaps || 'No major gaps' }}</span>
+              <span>Mentor: {{ plan.mentor || 'Jane Doe' }}</span>
+              <span>Training: {{ plan.trainingPlan || 'Bootcamp' }}</span>
+            </div>
+          </div>
+
+          <h3 style="margin-top: 24px;">Internal Job Portal ({{ internalJobs.length }} Active Listings)</h3>
+          <div *ngFor="let job of internalJobs" class="cert-item" style="margin-bottom: 12px; display: block;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <strong>{{ job.title }}</strong>
+                <div style="font-size: 0.85rem; color: #a0aec0; margin-top: 4px;">
+                  Department: {{ job.department }} | Min Exp: {{ job.minimumExperience }} years
+                </div>
+                <div style="font-size: 0.85rem; color: #cbd5e0; margin-top: 2px;">
+                  Required Skills: <em>{{ job.requiredSkills }}</em>
+                </div>
+              </div>
+              <button class="btn-primary" style="padding: 6px 16px;">Apply Now</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>

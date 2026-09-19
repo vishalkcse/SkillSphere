@@ -14,5 +14,8 @@ import java.util.UUID;
 public class SkillDTO {
     private UUID skillId;
     private String name;
+    private String skillName;
     private String category;
+    private String level;
+    private String description;
 }

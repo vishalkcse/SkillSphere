@@ -3,70 +3,237 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SkillSphere Nexus - Milestone 1: Employee Skill Management</title>
+  <title>SkillSphere Nexus - Admin Backend Console (8080)</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
-  <!-- Top Navigation Bar -->
-  <nav class="navbar">
-    <div class="brand">
-      <img src="logo.jpg" alt="SkillSphere Logo" class="brand-logo-img">
-      <span>SkillSphere Nexus</span>
+<!-- Admin Backend Login Screen -->
+<div id="backendLoginScreen" class="backend-login-screen">
+  <div class="backend-login-card">
+    <div class="login-brand">
+      <div class="login-logo-box">S</div>
+      <div class="login-brand-title">SkillSphere <span class="login-accent">Backend Console</span></div>
     </div>
-    <div class="nav-metrics">
-      <div class="metric-pill">Employees: <span class="metric-val">12.4K</span></div>
-      <div class="metric-pill">Skills Catalog: <span class="metric-val">2,847</span></div>
-      <div class="metric-pill">Cert Renewal Rate: <span class="metric-val">94%</span></div>
-      <div class="metric-pill">Course Completion: <span class="metric-val">87%</span></div>
+    <h2>Admin Backend Sign In</h2>
+    <p class="login-sub">Authenticate to access Spring Boot REST APIs, Redis output aggregation, and RBAC matrix.</p>
+
+    <div id="backendLoginError" class="login-error-alert" style="display: none;"></div>
+
+    <form id="backendLoginForm">
+      <div class="form-group">
+        <label>Admin Email / Username</label>
+        <input type="text" id="adminUsername" value="admin&#64;skillsphere.io" required />
+      </div>
+
+      <div class="form-group">
+        <label>Admin Security Key</label>
+        <input type="password" id="adminPassword" value="admin123" required />
+      </div>
+
+      <div class="form-group">
+        <label>Backend Environment</label>
+        <select id="adminEnv">
+          <option value="Production (Spring Boot 8080)">Production (Spring Boot 8080)</option>
+          <option value="Staging REST Engine">Staging REST Engine</option>
+        </select>
+      </div>
+
+      <button type="submit" class="btn-login-submit">Sign In to Admin Console</button>
+    </form>
+
+    <div class="login-demo-notice">
+      <span>Admin Credentials:</span> <strong>admin&#64;skillsphere.io</strong>
     </div>
-  </nav>
+  </div>
+</div>
 
-  <!-- Main Container -->
-  <div class="main-container">
+<!-- Main App Layout (Visible after Admin Login) -->
+<div id="backendAppLayout" class="app-layout" style="display: none;">
+  <!-- Left Sidebar -->
+  <aside class="sidebar">
+    <!-- Brand Header -->
+    <div class="brand-area">
+      <div class="brand-logo-box">S</div>
+      <div class="brand-text">
+        <div class="brand-name">SkillSphere</div>
+        <div class="brand-tag">NEXUS • BACKEND</div>
+      </div>
+    </div>
 
-    <!-- Sidebar Navigation -->
-    <aside class="sidebar">
+    <!-- Section Title -->
+    <div class="menu-section-label">MAIN</div>
+
+    <!-- Navigation Menu -->
+    <nav class="sidebar-nav">
       <button class="nav-tab-btn active" data-target="screen-output">
-        <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>
+        </svg>
         <span>Expected Output Screen</span>
       </button>
+
       <button class="nav-tab-btn" data-target="screen-profile">
-        <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+        </svg>
         <span>Employee Profile</span>
         <span class="badge-count">12.4K</span>
       </button>
+
       <button class="nav-tab-btn" data-target="screen-catalog">
-        <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+        </svg>
         <span>Skill Catalog</span>
         <span class="badge-count">2,847</span>
       </button>
+
       <button class="nav-tab-btn" data-target="screen-assessments">
-        <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>
+        </svg>
         <span>Assessment Scoring</span>
         <span class="badge-count">87%</span>
       </button>
+
       <button class="nav-tab-btn" data-target="screen-competencies">
-        <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/>
+        </svg>
         <span>Competency Mapping</span>
       </button>
+
       <button class="nav-tab-btn" data-target="screen-certifications">
-        <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg>
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/>
+        </svg>
         <span>Certification Tracking</span>
         <span class="badge-count">8.4K</span>
       </button>
+
       <button class="nav-tab-btn" data-target="screen-rbac">
-        <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+        </svg>
         <span>RBAC by HR@Service</span>
       </button>
-    </aside>
+    </nav>
 
-    <!-- Main Content Panel -->
-    <main class="content-area">
+    <!-- Frontend Portal Link (Just above Backend Status) -->
+    <a href="http://localhost:4200" target="_blank" class="btn-frontend-launch-sidebar" title="Launch Angular Frontend Portal on Port 4200">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+        <polyline points="15 3 21 3 21 9"/>
+        <line x1="10" y1="14" x2="21" y2="3"/>
+      </svg>
+      <span>Frontend Portal (4200)</span>
+    </a>
 
-      <!-- Expected Output Screen Banner -->
+    <!-- Bottom System Status -->
+    <div class="sidebar-status-box">
+      <span class="pulse-dot"></span>
+      <div>
+        <div class="status-title">Backend Status</div>
+        <div class="status-subtitle">Spring Boot 3.2 • Port 8080</div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Right Main Wrapper -->
+  <div class="main-wrapper">
+    <!-- Top Header -->
+    <header class="top-header">
+      <div class="breadcrumb-trail">
+        <span class="brand-crumb">SkillSphere Nexus</span>
+        <span class="crumb-slash">/</span>
+        <span class="active-crumb">Backend Service Console (Port 8080)</span>
+      </div>
+
+      <div class="header-actions">
+        <div class="user-pill">
+          <div class="avatar-badge">VK</div>
+          <div class="user-meta">
+            <span class="user-name">Vishal Kumar</span>
+            <span class="user-role">Administrator</span>
+          </div>
+        </div>
+
+        <button id="btnBackendLogout" class="btn-logout" title="Sign out of Admin Backend Console">Logout</button>
+      </div>
+    </header>
+
+    <!-- Main View Canvas -->
+    <main class="main-canvas">
+      <!-- Page Header -->
+      <div class="view-header">
+        <div class="section-tag">REST API & SERVICE VERIFICATION</div>
+        <h1 class="view-title">Backend Console & Verification</h1>
+        <p class="view-sub">Verify REST endpoints, Redis output aggregation, JPA entities, and RBAC authorization rules.</p>
+      </div>
+
+      <!-- Stat Summary Cards Row -->
+      <div class="stat-cards-row">
+        <div class="stat-card">
+          <div class="stat-card-left">
+            <span class="stat-card-title">Employees</span>
+            <div class="stat-card-number">12.4K</div>
+            <span class="stat-card-sub">Active profiles</span>
+          </div>
+          <div class="stat-card-icon">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+              <circle cx="9" cy="7" r="4"/>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+              <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+            </svg>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-card-left">
+            <span class="stat-card-title">Skills Catalog</span>
+            <div class="stat-card-number">2,847</div>
+            <span class="stat-card-sub">Catalog master</span>
+          </div>
+          <div class="stat-card-icon">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+            </svg>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-card-left">
+            <span class="stat-card-title">Cert Renewal Rate</span>
+            <div class="stat-card-number">94%</div>
+            <span class="stat-card-sub">Target compliance</span>
+          </div>
+          <div class="stat-card-icon">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-card-left">
+            <span class="stat-card-title">Course Completion</span>
+            <div class="stat-card-number">87%</div>
+            <span class="stat-card-sub">Learning paths</span>
+          </div>
+          <div class="stat-card-icon">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+              <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- Expected Output Screen Terminal Card -->
       <div class="output-banner">
-        <div class="output-tag">Skill Profile Service Output</div>
+        <div class="output-tag">SKILL PROFILE SERVICE OUTPUT</div>
         <div class="output-text" id="expectedOutputText">
           Skill Service: John Smith, Developer. Skills: Java 8/10, Spring Boot 7/10. AWS SAA valid, Java OCP expired. Assessment: 87%.
         </div>
@@ -74,19 +241,19 @@
 
       <!-- Tab 1: Expected Output Screen Details -->
       <div class="tab-screen active" id="screen-output">
-        <div class="glass-card">
+        <div class="content-card">
           <div class="card-title">Milestone 1 Core Output Verification</div>
-          <p style="color: var(--text-muted); margin-bottom: 1.25rem; line-height: 1.6;">
+          <p style="color: #64748b; margin-bottom: 1.25rem; line-height: 1.6;">
             This screen displays the unified <code>SkillProfileService</code> payload response synthesized for <strong>John Smith (Developer)</strong>, verifying employee profile aggregation, skill scoring, certification status evaluation (VALID vs EXPIRED), and verified assessment score.
           </p>
           <div class="grid-2">
-            <div style="background: rgba(0,0,0,0.2); padding: 1.25rem; border-radius: 12px; border: 1px solid var(--border-light);">
-              <h4 style="color: var(--accent-cyan); margin-bottom: 0.75rem;">Backend Service Endpoint</h4>
-              <p style="font-family: var(--font-mono); font-size: 0.88rem; color: #fff;">GET /api/v1/skill-profiles/john-smith</p>
+            <div style="background: #f8fafc; padding: 1.25rem; border-radius: 12px; border: 1px solid #e2e8f0;">
+              <h4 style="color: #0284c7; margin-bottom: 0.75rem;">Backend Service Endpoint</h4>
+              <p style="font-family: monospace; font-size: 0.9rem; color: #0f172a; font-weight: 600;">GET /api/v1/skill-profiles/john-smith</p>
             </div>
-            <div style="background: rgba(0,0,0,0.2); padding: 1.25rem; border-radius: 12px; border: 1px solid var(--border-light);">
-              <h4 style="color: var(--accent-emerald); margin-bottom: 0.75rem;">Verification Status</h4>
-              <span class="badge badge-verified">PASSED • 100% SPEC MATCH</span>
+            <div style="background: #f8fafc; padding: 1.25rem; border-radius: 12px; border: 1px solid #e2e8f0;">
+              <h4 style="color: #16a34a; margin-bottom: 0.75rem;">Verification Status</h4>
+              <span class="badge badge-verified" style="background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; padding: 6px 12px; border-radius: 6px; font-weight: 700;">PASSED • 100% SPEC MATCH</span>
             </div>
           </div>
         </div>
@@ -96,24 +263,24 @@
       <div class="tab-screen" id="screen-profile">
         <div class="grid-2">
           <!-- Profile Card -->
-          <div class="glass-card">
+          <div class="content-card">
             <div class="card-title">Employee Profile</div>
             <div style="display:flex; align-items:center; gap:1.25rem; margin-bottom:1.5rem;">
-              <div style="width:64px; height:64px; border-radius:50%; background:linear-gradient(135deg, var(--primary), var(--accent-cyan)); display:grid; place-items:center; font-size:1.5rem; font-weight:800; color:white;">JS</div>
+              <div style="width:64px; height:64px; border-radius:50%; background:linear-gradient(135deg, #0f172a, #334155); display:grid; place-items:center; font-size:1.5rem; font-weight:800; color:white;">JS</div>
               <div>
-                <h3 id="empName" style="font-size:1.35rem; font-weight:800;">John Smith</h3>
-                <p id="empTitle" style="color:var(--text-muted); font-size:0.9rem;">Developer • Engineering</p>
-                <p id="empEmail" style="color:var(--accent-cyan); font-size:0.82rem; font-family:var(--font-mono);">john.smith@skillsphere.com</p>
+                <h3 id="empName" style="font-size:1.35rem; font-weight:800; color:#0f172a;">John Smith</h3>
+                <p id="empTitle" style="color:#64748b; font-size:0.9rem;">Developer • Engineering</p>
+                <p id="empEmail" style="color:#0284c7; font-size:0.82rem; font-family:monospace;">john.smith@skillsphere.com</p>
               </div>
             </div>
-            <h4 style="font-size:0.95rem; font-weight:700; margin-bottom:1rem; border-bottom:1px solid var(--border-light); padding-bottom:0.5rem;">Employee Skills & Experience</h4>
+            <h4 style="font-size:0.95rem; font-weight:700; margin-bottom:1rem; border-bottom:1px solid #e2e8f0; padding-bottom:0.5rem; color:#0f172a;">Employee Skills & Experience</h4>
             <div id="empSkillsList">
               <!-- Rendered dynamically -->
             </div>
           </div>
 
           <!-- Certifications Card -->
-          <div class="glass-card">
+          <div class="content-card">
             <div class="card-title">Certification Tracking</div>
             <div id="empCertsList">
               <!-- Rendered dynamically -->
@@ -124,10 +291,10 @@
 
       <!-- Tab 3: Skill Catalog -->
       <div class="tab-screen" id="screen-catalog">
-        <div class="glass-card">
+        <div class="content-card">
           <div class="card-title">
             <span>Skill Catalog (2,847 Skills Managed)</span>
-            <span style="font-size:0.85rem; color:var(--text-muted);">Technical • Domain • Soft Skills</span>
+            <span style="font-size:0.85rem; color:#64748b;">Technical • Domain • Soft Skills</span>
           </div>
           <table class="custom-table">
             <thead>
@@ -148,7 +315,7 @@
 
       <!-- Tab 4: Assessment Scoring -->
       <div class="tab-screen" id="screen-assessments">
-        <div class="card-title">Skill Assessment & Scoring Engine</div>
+        <div class="card-title" style="margin-bottom:16px;">Skill Assessment & Scoring Engine</div>
         <div id="assessmentContainer" class="grid-2">
           <!-- Rendered dynamically -->
         </div>
@@ -156,7 +323,7 @@
 
       <!-- Tab 5: Competency Mapping -->
       <div class="tab-screen" id="screen-competencies">
-        <div class="card-title">Competency Framework Mapping</div>
+        <div class="card-title" style="margin-bottom:16px;">Competency Framework Mapping</div>
         <div id="competencyContainer" class="grid-2">
           <!-- Rendered dynamically -->
         </div>
@@ -164,10 +331,10 @@
 
       <!-- Tab 6: Certification Tracking -->
       <div class="tab-screen" id="screen-certifications">
-        <div class="glass-card">
+        <div class="content-card">
           <div class="card-title">
             <span>Active Certifications & Renewal Tracking</span>
-            <span style="font-size:0.85rem; color:var(--accent-emerald);">94% Renewal Rate Target</span>
+            <span style="font-size:0.85rem; color:#16a34a; font-weight:600;">94% Renewal Rate Target</span>
           </div>
           <table class="custom-table">
             <thead>
@@ -189,12 +356,12 @@
 
       <!-- Tab 7: RBAC by HR@Service -->
       <div class="tab-screen" id="screen-rbac">
-        <div class="glass-card">
+        <div class="content-card">
           <div class="card-title">Role-Based Access Control (RBAC) by HR@Service</div>
-          <p style="color:var(--text-muted); margin-bottom:1.25rem; font-size:0.92rem;">
+          <p style="color:#64748b; margin-bottom:1.25rem; font-size:0.92rem;">
             Test permission authorization for administrative skill operations. Switch roles to evaluate access control.
           </p>
-          <div style="display:flex; items-center; justify-content:space-between; margin-bottom:1.5rem;">
+          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:1.5rem;">
             <div class="role-toggle">
               <button class="role-btn active" data-role="HR">HR Manager</button>
               <button class="role-btn" data-role="EMPLOYEE">Employee</button>
@@ -203,8 +370,8 @@
             <button class="btn-primary" id="testRbacBtn">Execute Action: Edit Skill Matrix</button>
           </div>
           <div id="rbacOutput">
-            <div class="glass-card">
-              Active Role: <code id="activeRoleDisplay" style="color:var(--accent-cyan);">HR</code>
+            <div class="content-card" style="background:#f8fafc; border:1px solid #cbd5e1;">
+              Active Role: <code id="activeRoleDisplay" style="color:#0284c7; font-weight:700;">HR</code>
             </div>
           </div>
         </div>
@@ -212,7 +379,8 @@
 
     </main>
   </div>
+</div>
 
-  <script src="app.js"></script>
+<script src="app.js"></script>
 </body>
 </html>

@@ -32,9 +32,14 @@ public class SkillCatalogService {
             categoryStr = "TECHNICAL";
         }
 
+        String skillName = dto.getSkillName() != null ? dto.getSkillName() : dto.getName();
+
         Skill skill = Skill.builder()
-                .skillName(dto.getName())
+                .skillName(skillName)
                 .category(categoryStr)
+                .level(dto.getLevel() != null ? dto.getLevel() : "Advanced")
+                .description(dto.getDescription() != null ? dto.getDescription() : "Enterprise Skill Competency")
+                .isActive(true)
                 .build();
 
         return toDTO(skillRepository.save(skill));
@@ -54,7 +59,10 @@ public class SkillCatalogService {
         return SkillDTO.builder()
                 .skillId(skill.getSkillId())
                 .name(skill.getName())
+                .skillName(skill.getName())
                 .category(categoryStr)
+                .level(skill.getLevel())
+                .description(skill.getDescription())
                 .build();
     }
 }

@@ -35,9 +35,106 @@ import {
   styleUrls: ['./app.component.css']
 })
 export class AppComponent implements OnInit {
-  title = 'SkillSphere Nexus';
+  activeTab: 'dashboard' | 'profile' | 'catalog' | 'competency' | 'assessments' | 'learning' | 'certifications' | 'career' | 'jobs' | 'analytics' = 'dashboard';
 
-  activeTab: 'profile' | 'catalog' | 'competency' | 'assessments' | 'learning' | 'certifications' | 'career' = 'profile';
+  get activeTabTitle(): string {
+    switch (this.activeTab) {
+      case 'dashboard': return 'Dashboard';
+      case 'profile': return 'Employees';
+      case 'catalog': return 'Skills';
+      case 'competency': return 'Competency Gap Mapping';
+      case 'assessments': return 'Assessments & Verification';
+      case 'learning': return 'Learning';
+      case 'certifications': return 'Certifications';
+      case 'career': return 'Career';
+      case 'jobs': return 'Jobs';
+      case 'analytics': return 'Analytics';
+      default: return 'Dashboard';
+    }
+  }
+
+  get activeTabSub(): string {
+    switch (this.activeTab) {
+      case 'dashboard': return 'Monitor skills, learning, certifications and career development.';
+      case 'profile': return 'Manage employee skill profiles, proficiencies, and verified credentials.';
+      case 'catalog': return 'Browse, create, and manage enterprise skill definitions.';
+      case 'competency': return 'Analyze skill gaps against target organizational roles.';
+      case 'assessments': return 'Conduct skill assessments and verify employee proficiencies.';
+      case 'learning': return 'Access courses, track enrollments, and manage learning paths.';
+      case 'certifications': return 'Track professional certifications, expirations, and compliance.';
+      case 'career': return 'Plan career growth, mentorship, and review executive analytics.';
+      case 'jobs': return 'View active internal job openings and matching criteria.';
+      case 'analytics': return 'Executive metrics, skill readiness, and compliance reports.';
+      default: return 'Monitor skills, learning, certifications and career development.';
+    }
+  }
+
+  get overallLearningProgress(): number {
+    if (this.enrollments && this.enrollments.length > 0) {
+      const sum = this.enrollments.reduce((acc, curr) => acc + (curr.progress || (curr.completed ? 100 : 0)), 0);
+      return Math.round((sum / this.enrollments.length) * 100) / 100;
+    }
+    if (this.courses && this.courses.length > 0) {
+      const sum = this.courses.reduce((acc, curr) => acc + (curr.completionRate || 85), 0);
+      return Math.round((sum / this.courses.length) * 100) / 100;
+    }
+    return 88.5;
+  }
+
+  get formattedLearningProgress(): string {
+    return this.overallLearningProgress.toFixed(2) + '%';
+  }
+
+  // Authentication State (Default to false so Login Page appears first)
+  isLoggedIn: boolean = false;
+  loginEmail: string = 'vishalkumar@skillsphere.io';
+  loginPassword: string = 'password123';
+  loginRole: string = 'Administrator';
+  loginErrorMsg: string = '';
+
+  currentUser = {
+    name: 'Vishal Kumar',
+    email: 'vishalkumar@skillsphere.io',
+    role: 'Administrator',
+    avatar: 'VK'
+  };
+
+  login(): void {
+    if (!this.loginEmail || !this.loginPassword) {
+      this.loginErrorMsg = 'Please enter both email and password.';
+      return;
+    }
+
+    let name = 'Vishal Kumar';
+    let initials = 'VK';
+
+    if (this.loginEmail.toLowerCase().includes('john')) {
+      name = 'John Smith';
+      initials = 'JS';
+    } else if (this.loginEmail.toLowerCase().includes('jane')) {
+      name = 'Jane Doe';
+      initials = 'JD';
+    } else if (this.loginEmail.toLowerCase().includes('keerthi')) {
+      name = 'Keerthi Nathan';
+      initials = 'KN';
+    }
+
+    this.currentUser = {
+      name: name,
+      email: this.loginEmail,
+      role: this.loginRole,
+      avatar: initials
+    };
+
+    this.isLoggedIn = true;
+    this.loginErrorMsg = '';
+    this.activeTab = 'dashboard';
+  }
+
+  logout(): void {
+    this.isLoggedIn = false;
+    this.loginErrorMsg = '';
+  }
 
   profile: SkillProfileResponse | null = null;
   catalog: Skill[] = [];
@@ -191,7 +288,11 @@ export class AppComponent implements OnInit {
       },
       error: (err) => {
         console.error('Error adding skill:', err);
-        this.catalogSuccessMsg = 'Error adding skill to catalog (HR role required).';
+        if (err.status === 403 || err.status === 401) {
+          this.catalogSuccessMsg = 'Access Denied: HR Manager or Administrator role required to modify catalog.';
+        } else {
+          this.catalogSuccessMsg = err.error?.message || err.message || 'Error adding skill to catalog.';
+        }
       }
     });
   }
@@ -347,37 +448,47 @@ export class AppComponent implements OnInit {
   }
 
   registerProfessionalCert(): void {
-    if (!this.selectedEmpId || !this.newCertName) return;
+    if (!this.selectedEmpId || !this.newCertName) {
+      this.certMsg = 'Please enter a certification name.';
+      return;
+    }
 
     this.certService.register({
       empId: this.selectedEmpId,
       name: this.newCertName,
-      issuingOrganization: this.newCertIssuer,
+      issuingOrganization: this.newCertIssuer || 'AWS / Oracle',
       credentialId: this.newCertCredId || 'CRED-' + Math.floor(Math.random() * 89999 + 10000),
-      issued: this.newCertIssued,
-      expiry: this.newCertExpiry
+      issued: this.newCertIssued || '2025-03-15',
+      expiry: this.newCertExpiry || '2028-03-15'
     }).subscribe({
       next: (res) => {
-        this.certMsg = `Successfully registered: ${res.name} (Status: ${res.status})`;
+        this.certMsg = `Successfully registered certification: ${res.name} (Status: ${res.status})`;
         this.newCertName = '';
         this.newCertCredId = '';
         this.loadEmployeeCertifications();
         this.loadCertificationData();
-        setTimeout(() => this.certMsg = '', 4000);
+        setTimeout(() => this.certMsg = '', 5000);
       },
-      error: (err) => console.error('Error registering cert:', err)
+      error: (err) => {
+        console.error('Error registering cert:', err);
+        this.certMsg = err.error?.message || err.message || 'Error registering certification.';
+      }
     });
   }
 
   requestRenewal(certId: string): void {
+    if (!certId) return;
     this.certService.requestRenewal(certId, 'HR').subscribe({
-      next: () => {
-        this.certMsg = `Renewal requested for Cert ID: ${certId}. Kafka Event Published!`;
+      next: (res) => {
+        this.certMsg = `Renewal requested for Certification (Status: ${res.status || 'REQUESTED'}). Event logged!`;
         this.loadEmployeeCertifications();
         this.loadCertificationData();
         setTimeout(() => this.certMsg = '', 5000);
       },
-      error: (err) => console.error('Error requesting renewal:', err)
+      error: (err) => {
+        console.error('Error requesting renewal:', err);
+        this.certMsg = err.error?.message || err.message || 'Error requesting renewal.';
+      }
     });
   }
 

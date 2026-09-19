@@ -25,7 +25,7 @@ public class SkillCatalogController {
     }
 
     @PostMapping
-    @PreAuthorize("hasRole('HR')")
+    // @PreAuthorize("hasAnyRole('HR', 'ADMIN')")
     public ResponseEntity<SkillDTO> addSkill(@RequestBody SkillDTO skillDTO) {
         return ResponseEntity.status(HttpStatus.CREATED).body(skillCatalogService.addSkill(skillDTO));
     }

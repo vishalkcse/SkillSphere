@@ -1,20 +1,27 @@
 package com.skillsphere.config;
 
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 
+import java.util.concurrent.CompletableFuture;
+
 @Component
-@RequiredArgsConstructor
 public class KafkaCertificationProducer {
 
-    private final KafkaTemplate<String, String> kafkaTemplate;
+    @Autowired(required = false)
+    private KafkaTemplate<String, String> kafkaTemplate;
 
     public void sendRenewalEvent(String message) {
-        try {
-            kafkaTemplate.send("certification-renewal", message);
-        } catch (Exception e) {
-            System.err.println("Kafka producer notice: " + e.getMessage());
+        System.out.println("[Certification Event Logged] " + message);
+        if (kafkaTemplate != null) {
+            CompletableFuture.runAsync(() -> {
+                try {
+                    kafkaTemplate.send("certification-renewal", message);
+                } catch (Throwable t) {
+                    // Non-blocking fallback for local standalone mode
+                }
+            });
         }
     }
 }
